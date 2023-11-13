@@ -14,6 +14,7 @@ Para poder interactuar con el contenedor, tendremos que iniciarlo primero, por l
 
 3. ¿Cómo sería un fichero docker-compose para que dos contenedores se comuniquen entre si en una red solo de ellos?---
 
+
 services:
   bind9:
     image: ubuntu/bind9
@@ -107,5 +108,102 @@ volumes:
 - ./zona:/var/lib/bind
 
 
+9. Añade una zona tiendadeelectronica.int en tu docker DNS que tenga
+
+www a la IP 172.16.0.1
+
+owncloud sea un CNAME de www
+
+un registro de texto con el contenido "1234ASDF"
+
+Comprueba que todo funciona con el comando "dig"
+
+Muestra en los logs que el servicio arranca correctamente
+
+
+Para eso, en la base de datos localizada en zonas tenemos que poner lo siguiente:
+
+
+$TTL 38400	; 10 hours 40 minutes
+@		IN SOA	www.tiendaelectronica.int. some.email.address. (
+				10000002   ; serial
+				10800      ; refresh (3 hours)
+				3600       ; retry (1 hour)
+				604800     ; expire (1 week)
+				38400      ; minimum (10 hours 40 minutes)
+				)
+@		IN NS	www.tiendaelectronica.int.
+www		IN A		172.28.5.1
+owncloud	IN CNAME	www
+texto	IN TXT		"123456ASD"
+
+
+Al hacer esto, ya tenemos la mitad del ejercicio hecho. Ahora solo queda iniciar el dokcer compose si no se ha hecho ya, abrir una consola, instalar los dnsutils y comprobar su funcionamiento con dig, Que saldrá algo parecido a esto:
+
+; <<>> DiG 9.18.18-0ubuntu0.23.04.1-Ubuntu <<>> CNAME @172.28.5.1 owncloud.tiendaelectronica.int
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 47082
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: d234bf7e0a1320120100000065524cd593a31a565f2ec6a3 (good)
+;; QUESTION SECTION:
+;owncloud.tiendaelectronica.int.        IN      CNAME
+
+;; ANSWER SECTION:
+owncloud.tiendaelectronica.int. 38400 IN CNAME  www.tiendaelectronica.int.
+
+;; Query time: 0 msec
+;; SERVER: 172.28.5.1#53(172.28.5.1) (UDP)
+;; WHEN: Mon Nov 13 17:20:37 CET 2023
+;; MSG SIZE  rcvd: 105
+
+
+Para ver los logs, tendremos que hacer un cat en /var/log/auth.log
+
+
+10. Realiza el apartado 9 en la máquina virtual con DNS.
+
+
+Para empezar instalaremos bind9 desde la terminal de la máquina virtual con el comando "sudo apt install bind9" 
+. Luego comprobaremos su estado con el comando "systemctl status bind9" y debería estar corriendo.
+
+
+Cuando esté todo listo, copiaremos todos el contenido de los archivos conf en sus respectivos ficheros, en este caso en /etc/bind, y la base de datos de tiendaelectronica.int lo tendremos que copiar en /var/lib/bind.
+
+
+Cuando esté todo listo, probaremos su funcionamiento con el dig, como en la práctica anterior, nos tendría que dar lo mismo.
+
+
+Ahora para poder hacer un dig desde el host a la máquina virtual, tenemos que poner esta ultima en adaprtador puente con el modo promiscuo.
+
+
+Si tenemos la misma ip tanto dentro como fuera de la  máquina podremos hacer un dig a esta máquina sin problema.
+
+La respuesta del dig sería algo así:
+
+
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 22205
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: a79df51fcd9337570100000065525348504829e2f604ab74 (good)
+;; QUESTION SECTION:
+;test.tiendaelectronica.int.    IN      A
+
+;; ANSWER SECTION:
+test.tiendaelectronica.int. 38400 IN    A       172.28.5.3
+
+;; Query time: 0 msec
+;; SERVER: 172.28.5.1#53(172.28.5.1) (UDP)
+;; WHEN: Mon Nov 13 17:48:08 CET 2023
+;; MSG SIZE  rcvd: 99
 
 
