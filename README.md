@@ -16,31 +16,56 @@ Para poder interactuar con el contenedor, tendremos que iniciarlo primero, por l
 
 
 services:
+
   bind9:
+
     image: ubuntu/bind9
     container_name: asir2_bind9
+
     ports:
+
       - 53:53/tcp
+
       - 53:53/udp
+
     networks:
+
       bind9_subnet_exam:
+
         ipv4_address: 172.28.5.1
+
     volumes:
+
       - ./conf:/etc/bind
+
       - ./zonas:/var/lib/bind
+
     environment:
+
       - TZ=Europe/Paris
+
   cliente:
+
     container_name: asir_cliente
+
     image: alpine
+
     tty: true
+
     stdin_open: true
+
     networks:
+
       bind9_subnet_exam:
+
         ipv4_address: 172.28.5.2
+
 networks:
+
   bind9_subnet_exam:
+
     external: true
+
 
 
 Necesitaremos crear una red, por lo tanto usaremos el siguiente comando:
@@ -125,40 +150,64 @@ Para eso, en la base de datos localizada en zonas tenemos que poner lo siguiente
 
 
 $TTL 38400	; 10 hours 40 minutes
+
 @		IN SOA	www.tiendaelectronica.int. some.email.address. (
+
 				10000002   ; serial
+
 				10800      ; refresh (3 hours)
+
 				3600       ; retry (1 hour)
+
 				604800     ; expire (1 week)
+
 				38400      ; minimum (10 hours 40 minutes)
+
 				)
+
 @		IN NS	www.tiendaelectronica.int.
+
 www		IN A		172.28.5.1
+
 owncloud	IN CNAME	www
+
 texto	IN TXT		"123456ASD"
+
 
 
 Al hacer esto, ya tenemos la mitad del ejercicio hecho. Ahora solo queda iniciar el dokcer compose si no se ha hecho ya, abrir una consola, instalar los dnsutils y comprobar su funcionamiento con dig, Que saldrá algo parecido a esto:
 
 ; <<>> DiG 9.18.18-0ubuntu0.23.04.1-Ubuntu <<>> CNAME @172.28.5.1 owncloud.tiendaelectronica.int
+
 ; (1 server found)
+
 ;; global options: +cmd
+
 ;; Got answer:
+
 ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 47082
+
 ;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
 
 ;; OPT PSEUDOSECTION:
+
 ; EDNS: version: 0, flags:; udp: 1232
+
 ; COOKIE: d234bf7e0a1320120100000065524cd593a31a565f2ec6a3 (good)
 ;; QUESTION SECTION:
+
 ;owncloud.tiendaelectronica.int.        IN      CNAME
 
 ;; ANSWER SECTION:
+
 owncloud.tiendaelectronica.int. 38400 IN CNAME  www.tiendaelectronica.int.
 
 ;; Query time: 0 msec
+
 ;; SERVER: 172.28.5.1#53(172.28.5.1) (UDP)
+
 ;; WHEN: Mon Nov 13 17:20:37 CET 2023
+
 ;; MSG SIZE  rcvd: 105
 
 
@@ -187,23 +236,37 @@ La respuesta del dig sería algo así:
 
 
 ; (1 server found)
+
 ;; global options: +cmd
+
 ;; Got answer:
+
 ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 22205
-;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, 
+ADDITIONAL: 1
+
 
 ;; OPT PSEUDOSECTION:
+
 ; EDNS: version: 0, flags:; udp: 1232
+
 ; COOKIE: a79df51fcd9337570100000065525348504829e2f604ab74 (good)
+
 ;; QUESTION SECTION:
+
 ;test.tiendaelectronica.int.    IN      A
 
 ;; ANSWER SECTION:
 test.tiendaelectronica.int. 38400 IN    A       172.28.5.3
 
+
 ;; Query time: 0 msec
+
 ;; SERVER: 172.28.5.1#53(172.28.5.1) (UDP)
+
 ;; WHEN: Mon Nov 13 17:48:08 CET 2023
+
 ;; MSG SIZE  rcvd: 99
 
 
