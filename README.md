@@ -14,11 +14,38 @@ Para poder interactuar con el contenedor, tendremos que iniciarlo primero, por l
 
 3.- ¿Cómo sería un fichero docker-compose para que dos contenedores se comuniquen entre si en una red solo de ellos?---
 
-El fichero docker debe tener unas características en específico, entre ellas tener en el apartado de red, unas ips que sean de la misma red, tanto en un contenedor como en otro. A parte de eso, tendremos que crear la red en sí, por lo que usaremos este comando:
+services:
+  bind9:
+    image: ubuntu/bind9
+    container_name: asir2_bind9
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+    networks:
+      bind9_subnet_exam:
+        ipv4_address: 172.28.5.1
+    volumes:
+      - ./conf:/etc/bind
+      - ./zonas:/var/lib/bind
+    environment:
+      - TZ=Europe/Paris
+  cliente:
+    container_name: asir_cliente
+    image: alpine
+    tty: true
+    stdin_open: true
+    networks:
+      bind9_subnet_exam:
+        ipv4_address: 172.28.5.2
+networks:
+  bind9_subnet_exam:
+    external: true
+
+
+Necesitaremos crear una red, por lo tanto usaremos el siguiente comando:
+
 
 docker network create --driver=bridge --subnet=172.28.0.0/16 --ip-range=172.28.5.0/24 --gateway=172.25.5.254 [nombre-red]
-
-Esas son las 2 características más importantes a la hora de hacer un docker-compose con 2 contenedores conectados en una red solo para ellos.
 
 
 4.- ¿Qué hay que añadir al fichero anterior para que un contenedor tenga la IP fija?
@@ -50,8 +77,34 @@ Como su nombre indica, su fucionalidad es para poner puertos al los contenedores
 
 Lo que hace CNAME es asociar dominios específicos con optos ya existentes. Esto se suele usar por ejemplo para que varios dominios tengan la misma dirección IP.
 
+Un ejemplo rápido sería:
 
 
+alias IN CNAME test
+
+test IN A 172.28.5.4
+
+www IN A 172.28.5.2
+
+prueba IN A 172.28.5.7
+
+
+Si hacemos un "dig CNAME @[ip-server] [nombre-dominio] [nombre-base-datos].int." debería devolvernos algo como alias.asirdatabase.int
+
+
+8.- ¿Como puedo hacer para que la configuración de un contenedor DNS no se borre si creo otro contenedor?
+
+Para eso se utilizan los volúmenes, que son archivos con una configuración ya guardada que evita que se borre dicha configuración a la hora de borrar el contenedor, o se cree otro contenedor.
+
+Para utilizar estos archivos hay que mapearlos dentro del docker-compose, en el apartado de volúmenes, como se puede ver en el siguiente ejemplo:
+
+
+volumes:
+
+
+- ./conf:/etc/bind
+
+- ./zona:/var/lib/bind
 
 
 
