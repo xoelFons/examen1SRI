@@ -36,6 +36,22 @@ networks:
 Esto tendremos que ponerselo al apartado de network de cada contenedor.
 
 
+5.-¿Que comando de consola puedo usar para saber las ips de los contenedores anteriores?
+
+Con el comando "docker network inspect [nombre-red]". Luego para verificarlo, tendremos que buscar el nombre del contenedor en la salida.
+
+
+6.- ¿Cual es la funcionalidad del apartado "ports" en docker compose?
+
+Como su nombre indica, su fucionalidad es para poner puertos al los contenedores. Lo que haces con ports es mapear que puertos tiene que usar el contenedor.
+
+
+7.- ¿Para que sirve el registro CNAME? Pon un ejemplo
+
+Lo que hace CNAME es asociar dominios específicos con optos ya existentes. Esto se suele usar por ejemplo para que varios dominios tengan la misma dirección IP.
+
+
+
 
 
 
